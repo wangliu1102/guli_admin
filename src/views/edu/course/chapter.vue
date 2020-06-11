@@ -75,11 +75,11 @@
     },
     methods: {
       previous() {
-        this.$router.push({ path: '/course/info/1' })
+        this.$router.push({ path: '/course/info/' + this.courseId })
       },
       next() {
         //跳转到第二步
-        this.$router.push({ path: '/course/publish/1' })
+        this.$router.push({ path: '/course/publish/' + this.courseId })
       },
       //根据课程id查询章节和小节
       getChapterVideo() {
@@ -92,16 +92,18 @@
   }
 </script>
 <style scoped>
-  .chanpterList{
+  .chanpterList {
     position: relative;
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  .chanpterList li{
+
+  .chanpterList li {
     position: relative;
   }
-  .chanpterList p{
+
+  .chanpterList p {
     float: left;
     font-size: 20px;
     margin: 10px 0;
@@ -111,15 +113,17 @@
     width: 100%;
     border: 1px solid #DDD;
   }
+
   .chanpterList .acts {
     float: right;
     font-size: 14px;
   }
 
-  .videoList{
+  .videoList {
     padding-left: 50px;
   }
-  .videoList p{
+
+  .videoList p {
     float: left;
     font-size: 14px;
     margin: 10px 0;

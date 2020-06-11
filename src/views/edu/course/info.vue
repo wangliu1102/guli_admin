@@ -62,7 +62,7 @@
 
       <!-- 课程简介  -->
       <el-form-item label="课程简介">
-        <tinymce :height="300" v-model="courseInfo.description"/>
+        <tinymce :height="300" v-model="courseInfo.description" ref="des"/>
       </el-form-item>
 
 
@@ -97,22 +97,24 @@
   import subject from '@/api/edu/subject'
   import Tinymce from '@/components/Tinymce' //引入组件
 
+  const defaultForm = {
+    title: '',
+    subjectId: '',//二级分类id
+    subjectParentId: '',//一级分类id
+    teacherId: '',
+    lessonNum: 0,
+    description: '',
+    cover: '',
+    price: 0
+  }
   export default {
     //声明组件
     components: { Tinymce },
     data() {
       return {
         saveBtnDisabled: false,
-        courseInfo: {
-          title: '',
-          subjectId: '',//二级分类id
-          subjectParentId: '',//一级分类id
-          teacherId: '',
-          lessonNum: 0,
-          description: '',
-          cover: '',
-          price: 0
-        },
+        courseInfo: defaultForm,
+        courseId: '',
         BASE_API: process.env.BASE_API, // 接口API地址
         teacherList: [],//封装所有的讲师
         subjectOneList: [],//一级分类
@@ -120,12 +122,62 @@
       }
     },
     created() {
-      //初始化所有讲师
-      this.getListTeacher()
-      //初始化一级分类
-      this.getOneSubject()
+      this.init()
+    },
+    watch: {  //监听
+      $route(to, from) { //路由变化方式，路由发生变化，方法就会执行
+        this.init()
+      }
     },
     methods: {
+      init() {
+        //获取路由id值
+        if (this.$route.params && this.$route.params.id) {
+          this.courseId = this.$route.params.id
+          //调用根据id查询课程的方法
+          this.getInfo()
+
+        } else {
+          //初始化所有讲师
+          this.getListTeacher()
+          //初始化一级分类
+          this.getOneSubject()
+          //清空表单
+          this.courseInfo = {...defaultForm}
+          if (this.$refs['des'] !== undefined) {
+            this.$refs['des'].setContent("")
+          }
+        }
+      },
+      //根据课程id查询
+      getInfo() {
+        course.getCourseInfoId(this.courseId)
+          .then(response => {
+            //在courseInfo课程基本信息，包含 一级分类id 和 二级分类id
+            this.courseInfo = response.data.courseInfoVo
+            if (this.$refs['des'] !== undefined) {
+              this.$refs['des'].setContent(this.courseInfo.description)
+            }
+            //1 查询所有的分类，包含一级和二级
+            subject.getSubjectList()
+              .then(response => {
+                //2 获取所有一级分类
+                this.subjectOneList = response.data.list
+                //3 把所有的一级分类数组进行遍历，
+                for (var i = 0; i < this.subjectOneList.length; i++) {
+                  //获取每个一级分类
+                  var oneSubject = this.subjectOneList[i]
+                  //比较当前courseInfo里面一级分类id和所有的一级分类id
+                  if (this.courseInfo.subjectParentId === oneSubject.id) {
+                    //获取一级分类所有的二级分类
+                    this.subjectTwoList = oneSubject.children
+                  }
+                }
+              })
+            //初始化所有讲师
+            this.getListTeacher()
+          })
+      },
       //上传封面成功调用的方法
       handleAvatarSuccess(res, file) {
         this.courseInfo.cover = res.data.url
@@ -173,7 +225,8 @@
             this.teacherList = response.data.items
           })
       },
-      saveOrUpdate() {
+      //添加课程
+      addCourse() {
         course.addCourseInfo(this.courseInfo)
           .then(response => {
             //提示
@@ -184,6 +237,28 @@
             //跳转到第二步
             this.$router.push({ path: '/course/chapter/' + response.data.courseId })
           })
+      },
+      //修改课程
+      updateCourse() {
+        course.updateCourseInfo(this.courseInfo)
+          .then(response => {
+            //提示
+            this.$message({
+              type: 'success',
+              message: '修改课程信息成功!'
+            })
+            //跳转到第二步
+            this.$router.push({ path: '/course/chapter/' + this.courseId })
+          })
+      },
+      saveOrUpdate() {
+        //判断添加还是修改
+        if (!this.courseInfo.id) {
+          //添加
+          this.addCourse()
+        } else {
+          this.updateCourse()
+        }
       }
     }
   }
@@ -196,9 +271,11 @@
     position: relative;
     overflow: hidden;
   }
+
   .avatar-uploader .el-upload:hover {
     border-color: #409EFF;
   }
+
   .avatar-uploader-icon {
     font-size: 28px;
     color: #8c939d;
@@ -207,11 +284,13 @@
     line-height: 178px;
     text-align: center;
   }
+
   .avatar {
     width: 178px;
     height: 178px;
     display: block;
   }
+
   .tinymce-container {
     line-height: 29px;
   }
