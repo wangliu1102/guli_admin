@@ -44,5 +44,20 @@ export default {
       url: '/eduservice/course/publishCourse/' + id,
       method: 'post'
     })
+  },
+  // 课程列表
+  getPageList(page, limit, searchObj) {
+    return request({
+      url: `/eduservice/course/${page}/${limit}`,
+      method: 'post',
+      data: searchObj
+    })
+  },
+  // 根据课程id删除课程
+  removeById(id) {
+    return request({
+      url: `/eduservice/course/${id}`,
+      method: 'delete'
+    })
   }
 }
