@@ -222,11 +222,14 @@
             message: '删除成功!'
           })
         })//点击取消，执行catch方法
-          .catch(() => {
-            this.$message({
-              type: 'info',
-              message: '取消删除'
-            })
+          .catch((response) => {
+            console.log(response)
+            if (response === 'cancel'){
+              this.$message({
+                type: 'info',
+                message: '取消删除'
+              })
+            }
           })
       }
     }

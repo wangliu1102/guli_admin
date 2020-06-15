@@ -318,13 +318,15 @@
       },
       //添加小节弹框的方法
       openVideo(chapterId) {
-        //弹框
-        this.dialogVideoFormVisible = true
+
         //清空
         this.video = {}
         this.fileList = []
         //设置章节id
         this.video.chapterId = chapterId
+
+        //弹框
+        this.dialogVideoFormVisible = true
 
       },
       // 修改小节弹框的方法
@@ -354,6 +356,9 @@
               type: 'success',
               message: '添加小节成功!'
             })
+            //清空
+            this.video = {}
+            this.fileList = []
             //刷新页面
             this.getChapterVideo()
           })
